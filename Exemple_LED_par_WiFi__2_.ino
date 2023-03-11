@@ -12,44 +12,292 @@ String  etatGPIO2 = "ON";
 
 //Ecrire une page Web HTML
 String WebPage(){
-  String page = "<html lang=fr-FR><head><meta http-equiv='refresh' content='10'/>";   // Un code HTML actualise la page automatiquement    
-  page += "<title>SKETCH DEMO ESP8266 Web Server</title>";               // Titre de la barre du navigateur
-  page += "<style> body { background-color: red; font-family: Arial, Helvetica, Sans-Serif; Color: white; }</style>"; // style de la page
-  page += "</head><body><h1>ISET CHARGUIA</h1>";
-  page += "</head><body><h1></h1>";
-  page += "<h3>Commande d'une LED sur GPIO</h3>";                                  // Sous-titre (H3)
-  page += "<form action='/' method='POST' id='myForm'>";                // Le formulaire sera envoye avec une requete de type POST 
-  page += "<ul><li>GPIO2 (etat: ";                             // Première ligne de la liste (ul) avec D0
-  page += etatGPIO2;                                           // on concatene la chaine contenant l'etat de la sortie
-  page += ") ";
-  page += " <INPUT type='radio' name='GPIO2' value='1' onchange='submitForm()'>ON";     // Bouton pour activer D0
-  page += "<INPUT type='radio' name='GPIO2' value='0' onchange='submitForm()'>OFF</li></ul>"; // et le desactiver
-  page += "</head><body><h1></h1>";
-  page +="<script>";
-  page +="function submitForm() {";
-  page +="  document.getElementById('myForm').submit();}";
-  page +="</script>";
-  page += "<br><br><p><a hrf=''>(c)ISET Charguia</p>";
-  page += "</body></html>";
-  return page;
-}
+  String page ="""
+  <!DOCTYPE html>
+<html lang='fr-FR'>
+  <head>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>SKETCH DEMO ESP8266 Web Server</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,600;0,700;0,800;0,900;1,600;1,700;1,800&display=swap');
+      * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+        font-family: 'Poppins', Arial, Helvetica, Sans-Serif;
+      }
+      a {
+        color: inherit;
+      }
+      body {
+        min-height: 100vh;
+        background-color: #333;
+        color: white;
+      }
+      button {
+        border-radius: 4px;
+        outline: none;
+        border: 1px solid orange;
+        cursor: pointer;
+        background-color: #333;
+        color: orange;
+        padding: 9px 14px;
+      }
+      #secured_page {
+        display: none;
+      }
+      #secured_page > h1 {
+        color: orange;
+        margin-bottom: 60px;
+        text-align: center;
+      }
+      #secured_page,
+      #unsecured_page {
+        max-width: 900px;
+        padding: 20px;
+        margin: auto;
+      }
+      #unsecured_page {
+        margin-top: 60px;
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      input {
+        padding: 8px;
+      }
+      input[type='submit'] {
+        cursor: pointer;
+      }
+      #user-content {
+        align-items: center;
+        justify-content: space-between;
+        display: flex;
+        gap: 7px;
+      }
+      #loader {
+        position: absolute;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #333;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        display: flex;
+      }
+      .lds-facebook {
+        display: inline-block;
+        position: relative;
+        width: 80px;
+        height: 80px;
+      }
+      .lds-facebook div {
+        display: inline-block;
+        position: absolute;
+        left: 8px;
+        width: 16px;
+        background: #fff;
+        animation: lds-facebook 1.2s cubic-bezier(0, 0.5, 0.5, 1) infinite;
+      }
+      .lds-facebook div:nth-child(1) {
+        left: 8px;
+        animation-delay: -0.24s;
+      }
+      .lds-facebook div:nth-child(2) {
+        left: 32px;
+        animation-delay: -0.12s;
+      }
+      .lds-facebook div:nth-child(3) {
+        left: 56px;
+        animation-delay: 0;
+      }
+      @keyframes lds-facebook {
+        0% {
+          top: 8px;
+          height: 64px;
+        }
+        50%,
+        100% {
+          top: 24px;
+          height: 32px;
+        }
+      }
+      #iset_ch {
+        color: gray;
+        font-style: italic;
+        position: absolute;
+        bottom: 6px;
+        left: 0;
+        right: 0;
+        text-align: center;
+      }
+      #user-email {
+        color: rgb(0, 159, 0);
+      }
+      #myForm {
+        margin-top: 20px;
+        padding-left: 20px;
+      }
+      #command-etat {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .title {
+        margin-bottom: 20px;
+        font-size: 2.6rem;
+        text-transform: uppercase;
+        text-align: center;
+        color: orange;
+      }
+      #message {
+        height: 20px;
+        text-align: center;
+        color: rgb(235, 46, 46);
+      }
+      #etat {
+        width: 100px;
+      }
+      .color-orange {
+        color: orange;
+      }
+    </style>
+    <script type='module'>
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js';
+      import {
+        getAuth,
+        onAuthStateChanged,
+        signInWithEmailAndPassword,
+        signOut,
+      } from 'https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js';
+      const firebaseConfig = {
+        apiKey: 'AIzaSyC0bNbWy1Cl34ejQEPKOwrL5XWRXGtpN50',
+        authDomain: 'mini-project-59d59.firebaseapp.com',
+        databaseURL: 'https://mini-project-59d59-default-rtdb.firebaseio.com',
+        projectId: 'mini-project-59d59',
+        storageBucket: 'mini-project-59d59.appspot.com',
+        messagingSenderId: '1031167507444',
+        appId: '1:1031167507444:web:a2edb6701b1e947c4197a1',
+        measurementId: 'G-BVVP0PEWHH',
+      };
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const loginForm = document.getElementById('login-form');
+      const submit_login_btn = document.getElementById('submit_login');
+      const message = document.getElementById('message');
+      loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        submit_login_btn.value = 'Login...';
+        submit_login_btn.disabled = true;
+        message.value = 'You are logged in';
+        const email = loginForm.email.value;
+        const password = loginForm.password.value;
+        signInWithEmailAndPassword(auth, email, password)
+          .then((userCredential) => {
+            const user = userCredential.user;
+            console.log('Logged in user:', user);
+            submit_login_btn.value = 'Login';
+            submit_login_btn.disabled = false;
+          })
+          .catch((error) => {
+            console.error('Login failed:', error);
+            message.innerText = 'invalid email or password';
+            submit_login_btn.value = 'Login';
+            submit_login_btn.disabled = false;
+          });
+      });
+      const loader = document.getElementById('loader');
+      const secured_page = document.getElementById('secured_page');
+      const unsecured_page = document.getElementById('unsecured_page');
+      const user_email_div = document.getElementById('user-email');
 
-/*
-//page login
-String Login(){
-  String page = "<html lang=fr-FR><head><meta http-equiv='refresh' content='10'/>";
-page += "<head> <title>Page de Login</title></head>";
-page += "<body>";
-page += "	<h2>Connexion</h2>";
-page += "<form action='/' method='POST'>";
-page += "<label for="username">Nom d'utilisateur:</label>";
-page += "<input type="text" id="username" name="username" placeholder="username"><br><br>";
-page += "<label for="password">Mot de passe:</label>";
-page += "<input type="password" id="password" name="password" placeholder="password"><br><br>";
-page += "<input type="submit" value="Se connecter">";
-page += "</form>";
-page += "</body>";
-page += "</html>";
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          loader.style.display = 'none';
+          secured_page.style.display = 'block';
+          unsecured_page.style.display = 'none';
+          var userEmail = user.email;
+          user_email_div.innerHTML = userEmail;
+        } else {
+          loader.style.display = 'none';
+          secured_page.style.display = 'none';
+          unsecured_page.style.display = 'block';
+        }
+      });
+      const logoutButton = document.getElementById('logoutButton');
+      logoutButton.addEventListener('click', () => {
+        signOut(auth);
+      });
+      function submitForm() {
+        document.getElementById('myForm').submit();
+      }
+    </script>
+  </head>
+  <body>
+    <div id='loader'>
+      <h2>connecting to <span class='color-orange'>firebase</span></h2>
+      <div class='lds-facebook'>
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+    </div>
+    <div id='secured_page'>
+      <h1>ISET CHARGUIA</h1>
+      <div id='user-content'>
+        <div>
+          user :
+          <span id='user-email'></span>
+        </div>
+        <button id='logoutButton'>logout</button>
+      </div>
+      <form method='POST' id='myForm' name='myForm'>
+        <div id='command-etat'>
+          <h3>Commande d'une LED sur GPIO</h3>
+          <div id='etat'>GPIO2 : <span>
+          """
+page+=etatGPIO2;
+page+="""
+          </span></div>
+        </div>
+        <label>
+          <input
+            type='radio'
+            name='GPIO2'
+            value='1'
+            onchange='submitForm()'
+            id='ON'
+          />
+          <span>ON</span>
+        </label>
+        <label>
+          <input type='radio' name='GPIO2' value='0' onchange='submitForm()' />
+          <span> OFF</span>
+        </label>
+      </form>
+      <br /><br />
+      <p id='iset_ch'><a href='#'>ISET Charguia &copy;</a></p>
+    </div>
+    <div id='unsecured_page'>
+      <form method='POST' id='login-form'>
+        <h1 class='title'>Login</h1>
+        <div id='message'></div>
+        <label for='email'>Email</label>
+        <input type='email' name='email' id='email' required />
+        <label for='password'>Password</label>
+        <input type='password' name='password' id='password' required />
+        <input type='submit' value='login' id='submit_login' />
+      </form>
+    </div>
+  </body>
+</html>
+  """    
+
 return page;
 }
 */
