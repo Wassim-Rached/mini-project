@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="" />
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        display: grid;
+        place-content: center;
+        font-family: sans-serif;
+        color: #6b6b6b;
+      }
+
+      form {
+        width: 90vw;
+        max-width: 768px;
+        border: 1px solid #ddd;
+        padding: 3vw;
+        display: flex;
+        flex-direction: column;
+        border-radius: 5px;
+        box-shadow: rgba(0, 0, 0, 0.25) 0px 14px 28px,
+          rgba(0, 0, 0, 0.22) 0px 10px 10px;
+        border-radius: 12px;
+      }
+
+      label {
+        margin-bottom: 15px;
+        position: relative;
+        border-bottom: 1px solid #ddd;
+      }
+
+      input {
+        width: 100%;
+        padding: 10px 0px;
+        margin-top: 20px;
+        border: none;
+        outline: none;
+      }
+
+      input::placeholder {
+        opacity: 0;
+      }
+
+      span {
+        position: absolute;
+        top: 0;
+        left: 0;
+        transform: translateY(30px);
+        font-size: 0.825em;
+        transition-duration: 300ms;
+      }
+
+      button {
+        padding: 15px 0px;
+        margin-top: 20px;
+        background: purple;
+        color: #fff;
+        border: 1px solid purple;
+        cursor: pointer;
+        border-radius: 3px;
+      }
+
+      /* CSS */
+      .button-28 {
+        appearance: none;
+        background-color: transparent;
+        border: 1px solid black;
+        border-radius: 15px;
+        box-sizing: border-box;
+        color: #3b3b3b;
+        cursor: pointer;
+        display: inline-block;
+        font-family: Roobert, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+          "Segoe UI Symbol";
+        font-size: 16px;
+        font-weight: 600;
+        line-height: normal;
+        margin: 0;
+        min-height: 60px;
+        min-width: 0;
+        outline: none;
+        padding: 16px 24px;
+        text-align: center;
+        text-decoration: none;
+        transition: all 300ms cubic-bezier(0.23, 1, 0.32, 1);
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        width: 100%;
+        will-change: transform;
+      }
+
+      .button-28:disabled {
+        pointer-events: none;
+      }
+
+      .button-28:hover {
+        color: #fff;
+        background-color: #6d81f7;
+        box-shadow: rgba(0, 0, 0, 0.25) 0 8px 15px;
+        transform: translateY(-2px);
+      }
+
+      .button-28:active {
+        box-shadow: none;
+        transform: translateY(0);
+      }
+
+      label:focus-within > span,
+      input:not(:placeholder-shown) + span {
+        color: purple;
+        transform: translateY(0px);
+      }
+
+      #loader {
+        z-index: 100;
+        position: absolute;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #c22929;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        display: flex;
+      }
+
+      #admin_page {
+        display: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        signInWithEmailAndPassword,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
+
+      // Your web app's Firebase configuration
+      var firebaseConfig = {
+        apiKey: "AIzaSyBgX3ss7SSlYURPgo8N1Mb70jW46OX9_kA",
+        authDomain: "louay-miniprojet.firebaseapp.com",
+        projectId: "louay-miniprojet",
+        storageBucket: "louay-miniprojet.appspot.com",
+        messagingSenderId: "802367850422",
+        appId: "1:802367850422:web:842fc67bd316ea51cb2317",
+      };
+
+      // Initialize Firebase
+      var app = initializeApp(firebaseConfig);
+      var auth = getAuth(app);
+      var signupform = document.getElementById("form");
+      var submit_login_btn = document.getElementById("submit_login");
+      var auth_result = document.getElementById("auth_result");
+      signupform.addEventListener("submit", (e) => {
+        e.preventDefault();
+        submit_login_btn.value = "Login...";
+        submit_login_btn.disabled = true;
+        auth_result.value = "You are logged in";
+        var email = signupform.email.value;
+        var password = signupform.password.value;
+        signInWithEmailAndPassword(auth, email, password)
+          .then((userCredential) => {
+            var user = userCredential.user;
+            console.log("Logged in user:", user);
+            submit_login_btn.value = "Login";
+            submit_login_btn.disabled = false;
+          })
+          .catch((error) => {
+            console.error("Login failed:", error);
+            auth_result.innerText = "invalid email or password";
+            submit_login_btn.value = "Login";
+            submit_login_btn.disabled = false;
+          });
+      });
+      var loader = document.getElementById("loader");
+
+      var register_page = document.getElementById("register_page");
+      var admin_page = document.getElementById("admin_page");
+      var username_div = document.getElementById("user-email");
+
+      onAuthStateChanged(auth, (user) => {
+        loader.style.display = "none";
+        if (user) {
+          register_page.style.display = "none";
+          admin_page.style.display = "block";
+          console.log({ user });
+          username_div.innerHTML = user.email.replace("@gmail.com", "");
+        } else {
+          register_page.style.display = "block";
+          admin_page.style.display = "none";
+        }
+      });
+      var signoutBtn = document.getElementById("signoutBtn ");
+
+      signoutBtn.addEventListener("click", () => {
+        signOut(auth);
+      });
+
+      function submitForm() {
+        document.getElementById("myForm").submit();
+      }
+    </script>
+    <div id="loader">firebase loading...</div>
+    <div class="register" id="register_page">
+      <form id="form">
+        <h1 style="text-align: center">
+          Welcome Back
+          <script src="https://cdn.lordicon.com/bhenfmcm.js"></script>
+          <lord-icon
+            src="https://cdn.lordicon.com/dxjqoygy.json"
+            trigger="hover"
+            colors="primary:#121331,secondary:#08a88a"
+            style="
+              width: 50px;
+              height: 50px;
+              position: relative;
+              top: 1.5vh;
+              cursor: pointer;
+            "
+          >
+          </lord-icon>
+        </h1>
+
+        <label for="email">
+          <input type="email" id="email" placeholder="Email" />
+          <span>Email</span>
+        </label>
+        <label for="password">
+          <input type="Password" id="password" placeholder="Password" />
+          <span>Password</span>
+        </label>
+
+        <input
+          type="submit"
+          value="Login"
+          id="submit_login"
+          class="button-28"
+          role="button"
+        /><br />
+        <div
+          id="auth_result"
+          style="margin: 10px; height: 30px; text-align: center; color: red"
+        ></div>
+      </form>
+    </div>
+    <div id="admin_page">
+      <p id="user-email"></p>
+      <button id="signoutBtn ">logout</button>
+    </div>
+  <!-- Code injected by live-server -->
+<script>
+	// <![CDATA[  <-- For SVG support
+	if ('WebSocket' in window) {
+		(function () {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i < sheets.length; ++i) {
+					var elem = sheets[i];
+					var parent = elem.parentElement || head;
+					parent.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					parent.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function (msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+				console.log('Live reload enabled.');
+				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+			}
+		})();
+	}
+	else {
+		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+	}
+	// ]]>
+</script>
+</body>
+</html>
