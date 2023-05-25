@@ -202,6 +202,7 @@ String WebPage()
         bottom: 40px;
         background: rgba(0, 255, 255, 0.49);
         padding: 8px;
+        padding-left: 30px;
         width: 260px;
         /* font-style: italic; */
         font-size: small;
