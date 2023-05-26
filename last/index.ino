@@ -389,7 +389,9 @@ String WebPage()
       <form method="GET" id="myForm" name="myForm">
         <div id="command-etat">
           <h3>Commande d'une LED sur GPIO</h3>
-          <div id="etat">GPIO2 : <span id="led_state">OFF</span></div>
+          <div id="etat">GPIO2 : <span id="led_state">)";
+          page += etatGPIO2;
+          page += R"(</span></div>
         </div>
         <button id="on_btn" type="button" onClick='toggle_led(1)'>
           <span> ON</span>
