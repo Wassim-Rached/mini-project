@@ -448,8 +448,10 @@ String WebPage()
 
 void Racine()
 {
+  // si le request est avec le argument GPIO2
     if (server.hasArg("GPIO2"))
     {
+    // on  
         handle_toogle_led();
     }
     else
@@ -479,6 +481,7 @@ void handle_toogle_led()
     {
         Serial.println("Erreur Valeur LED");
     }
+    // retourne le state avec type json
     String jsonResponse = "{\"state\":" + String(GPIOValue) + "}";
     server.send(200, "application/json", jsonResponse);
 }
@@ -487,8 +490,8 @@ void handle_temp(){
    h = dht.readHumidity();
    t = dht.readTemperature();
 
+  // retourne le Temperature et le Humidity avec type json
 	String jsonResponse = "{\"temperature\": " + String(t) + ", \"humidity\": " + String(h) + "}";
-
 	server.send(200, "application/json", jsonResponse);
 }
 
@@ -511,6 +514,7 @@ void setup()
     Serial.println(WiFi.localIP());
     // on definit les points d'entree (les URL a saisir dans le navigateur web) et on affiche un simple texte
     server.on("/", Racine);
+    // /temp pour laccess au temperature
     server.on("/temp", handle_temp);
 
     // on demarre le serveur web
