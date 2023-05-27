@@ -446,20 +446,6 @@ String WebPage()
     return page;
 }
 
-void Racine()
-{
-  // si le request est avec le argument GPIO2
-    if (server.hasArg("GPIO2"))
-    {
-    // on  
-        handle_toogle_led();
-    }
-    else
-    {
-        server.send(200, "text/html", WebPage());
-    }
-}
-
 void handle_toogle_led()
 {
     // Actualise le GPIO
@@ -485,6 +471,21 @@ void handle_toogle_led()
     String jsonResponse = "{\"state\":" + String(GPIOValue) + "}";
     server.send(200, "application/json", jsonResponse);
 }
+
+void Racine()
+{
+  // si le request est avec le argument GPIO2
+    if (server.hasArg("GPIO2"))
+    {
+    // on  
+        handle_toogle_led();
+    }
+    else
+    {
+        server.send(200, "text/html", WebPage());
+    }
+}
+
 
 void handle_temp(){
    h = dht.readHumidity();
